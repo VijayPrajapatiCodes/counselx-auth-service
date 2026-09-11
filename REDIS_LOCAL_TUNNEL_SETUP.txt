@@ -1,0 +1,22 @@
+COUNSELX AWS VALKEY LOCAL TUNNEL
+
+1) Keep SSH tunnel open:
+ssh -i "C:\Users\vijay\Downloads\Devops Key (1).pem" -L 6379:counselx-redis-1bfkdu.serverless.aps1.cache.amazonaws.com:6379 ubuntu@65.0.105.244
+
+2) Run Notepad as Administrator and edit:
+C:\Windows\System32\drivers\etc\hosts
+
+Add:
+127.0.0.1 counselx-redis-1bfkdu.serverless.aps1.cache.amazonaws.com
+
+3) IntelliJ env:
+REDIS_HOST=counselx-redis-1bfkdu.serverless.aps1.cache.amazonaws.com
+REDIS_PORT=6379
+REDIS_USERNAME=counselx-auth
+REDIS_PASSWORD=<AWS Valkey password>
+REDIS_TLS_HOST=counselx-redis-1bfkdu.serverless.aps1.cache.amazonaws.com
+
+4) Verify:
+Test-NetConnection 127.0.0.1 -Port 6379
+
+Do NOT disable TLS hostname verification.

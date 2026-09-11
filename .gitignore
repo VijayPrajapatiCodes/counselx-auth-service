@@ -1,0 +1,8 @@
+target/
+.idea/
+*.iml
+.env
+.env.*
+*.log
+
+counselx-k8s/secrets/secret.yaml
