@@ -17,5 +17,6 @@ public class MeResponse {
     private String status;
     private boolean emailVerified;
     private boolean mobileVerified;
+    private boolean profilePhotoAvailable;
     private List<String> roles;
 }

@@ -42,6 +42,13 @@ public class User {
     @Column(nullable = false)
     private boolean mobileVerified;
 
+    @Lob
+    @Column(columnDefinition = "MEDIUMBLOB")
+    private byte[] profilePhoto;
+
+    @Column(length = 100)
+    private String profilePhotoContentType;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

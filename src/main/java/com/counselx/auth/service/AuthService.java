@@ -89,7 +89,9 @@ public class AuthService {
         );
 
         if (!otpRateLimiterService.tryAcquire(email)) {
-            throw new IllegalStateException("Unable to send verification OTP. Please try again later");
+            throw new TooManyRequestsException(
+                    "OTP request limit reached. Please wait before requesting another OTP"
+            );
         }
 
         sendNewEmailOtp(savedUser);
@@ -258,9 +260,87 @@ public class AuthService {
                 user.getStatus(),
                 user.isEmailVerified(),
                 user.isMobileVerified(),
+                user.getProfilePhoto() != null && user.getProfilePhoto().length > 0,
                 roles
         );
     }
+
+    @Transactional
+    public MeResponse updateProfile(Long userId, UpdateProfileRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String firstName = request.firstName().trim();
+        String lastName = request.lastName().trim();
+        String mobile = request.mobile().trim();
+
+        if (firstName.isBlank() || lastName.isBlank()) {
+            throw new IllegalArgumentException("First name and last name are required");
+        }
+
+        if (userRepository.existsByMobile(mobile) && !mobile.equals(user.getMobile())) {
+            throw new IllegalArgumentException("Mobile already registered");
+        }
+
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setMobile(mobile);
+        userRepository.save(user);
+
+        return me(userId);
+    }
+
+    @Transactional
+    public MeResponse updateProfilePhoto(Long userId, byte[] photo, String contentType) {
+
+        if (photo == null || photo.length == 0) {
+            throw new IllegalArgumentException("Profile photo is required");
+        }
+
+        if (photo.length > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("Profile photo must be 5 MB or smaller");
+        }
+
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed for profile photo");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setProfilePhoto(photo);
+        user.setProfilePhotoContentType(contentType);
+        userRepository.save(user);
+
+        return me(userId);
+    }
+
+    @Transactional
+    public void deleteProfilePhoto(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setProfilePhoto(null);
+        user.setProfilePhotoContentType(null);
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public ProfilePhoto getProfilePhoto(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getProfilePhoto() == null || user.getProfilePhoto().length == 0) {
+            throw new IllegalArgumentException("Profile photo not found");
+        }
+
+        return new ProfilePhoto(user.getProfilePhoto(), user.getProfilePhotoContentType());
+    }
+
+    public record ProfilePhoto(byte[] bytes, String contentType) {}
 
     private void sendNewEmailOtp(User user) {
 
