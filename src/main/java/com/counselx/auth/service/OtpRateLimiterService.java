@@ -68,8 +68,11 @@ public class OtpRateLimiterService {
 
         long hourBucket = System.currentTimeMillis() / 3_600_000L;
 
-        String cooldownKey = COOLDOWN_PREFIX + emailKey;
-        String hourlyKey = HOURLY_PREFIX + emailKey + ":" + hourBucket;
+        String cooldownKey =
+                COOLDOWN_PREFIX + "{" + emailKey + "}";
+
+        String hourlyKey =
+                HOURLY_PREFIX + "{" + emailKey + "}:" + hourBucket;
 
         Long result = redisTemplate.execute(
                 rateLimitScript,
