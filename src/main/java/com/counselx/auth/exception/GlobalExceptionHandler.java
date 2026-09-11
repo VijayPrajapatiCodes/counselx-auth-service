@@ -1,6 +1,8 @@
 package com.counselx.auth.exception;
 
 import com.counselx.auth.dto.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +14,9 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> validation(
@@ -27,18 +32,34 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(TooManyRequestsException.class)
-    public ResponseEntity<ErrorResponse> tooManyRequests(TooManyRequestsException ex) {
-        return response(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    public ResponseEntity<ErrorResponse> tooManyRequests(
+            TooManyRequestsException ex) {
+
+        return response(
+                HttpStatus.TOO_MANY_REQUESTS,
+                ex.getMessage()
+        );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> badRequest(IllegalArgumentException ex) {
-        return response(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ResponseEntity<ErrorResponse> badRequest(
+            IllegalArgumentException ex) {
+
+        return response(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> runtime(RuntimeException ex) {
-        return response(HttpStatus.BAD_REQUEST, ex.getMessage());
+
+        log.error("Unhandled runtime exception", ex);
+
+        return response(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
     }
 
     private ResponseEntity<ErrorResponse> response(
